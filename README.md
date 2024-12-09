@@ -11,29 +11,67 @@ and the Flutter guide for
 [developing packages and plugins](https://flutter.dev/developing-packages).
 -->
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+IsolateWorker system, which allows for executing computational tasks in separate isolates. The tasks and their respective data are passed between isolates, ensuring non-blocking execution for heavy computations. The system supports task registration, data serialization, and handling task-specific data classes.
 
 ## Features
-
-TODO: List what your package can do. Maybe include images, gifs, or videos.
-
-## Getting started
-
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+Task Implementations (e.g., FibonacciTask): Concrete implementations of tasks that provide specific functionality (e.g., calculating Fibonacci numbers).
 
 ## Usage
 
 TODO: Include short and useful examples for package users. Add longer examples
 to `/example` folder.
 
+Execute Task
 ```dart
-const like = 'sample';
+IsolateWorker worker = IsolateWorker();
+
+final fibonacciResult = await worker.init(
+  tasks: {
+    'fibonacci': FibonacciTask(),
+    'uppercase': UppercaseTask(),
+  },
+);
+
+await worker.executeTask<int>(
+  'fibonacci',
+  FibonacciTaskData(45),
+);
 ```
 
-## Additional information
+Implementation Task
+```dart
+class FibonacciTaskData extends IsolateTaskData {
+  int? n;
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+  FibonacciTaskData(this.n);
+
+  FibonacciTaskData.fromJson(Map<String, dynamic> json) {
+    n = json['n'];
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {'n': n};
+  }
+}
+
+class FibonacciTask implements IsolateTask<FibonacciTaskData> {
+  @override
+  dynamic execute(data) {
+    FibonacciTaskData taskData = convertExecuteData(data);
+
+    final n = taskData.n;
+    return _calculateFibonacci(n ?? 0);
+  }
+
+  int _calculateFibonacci(int n) {
+    if (n <= 1) return n;
+    return _calculateFibonacci(n - 1) + _calculateFibonacci(n - 2);
+  }
+
+  @override
+  FibonacciTaskData convertExecuteData(Map<String, dynamic> data) {
+    return FibonacciTaskData.fromJson(data);
+  }
+}
+```

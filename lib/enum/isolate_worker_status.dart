@@ -1,0 +1,4 @@
+enum IsolateWorkerStatus {
+  notInitialized,
+  ready,
+}
